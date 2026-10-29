@@ -35,7 +35,11 @@ object Config {
         key = "postgres.url",
         default = "r2dbc:postgresql://localhost:5432/postgres",
         description = "The R2DBC URL of the PostgreSQL database."
-    )
+    ).map("postgres.url") {
+        if (it.startsWith("postgresql:")) {
+            "r2dbc:"
+        } else it
+    }
 
     val POSTGRES_USER: String by string(
         key = "postgres.user",
