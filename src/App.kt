@@ -22,6 +22,8 @@ object App {
 
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+    val onlyServer = System.getenv("ONLY_SERVER")?.equals("true", ignoreCase = true) == true
+
     suspend fun start() {
         // switching to application scope
         val job = scope.launch {
@@ -31,6 +33,20 @@ object App {
     }
 
     private suspend fun run() = coroutineScope {
+        if (onlyServer) {
+            val port = System.getenv("SERVER_PORT")?.toIntOrNull() ?: 80
+            val host = System.getenv("SERVER_HOST") ?: "0.0.0.0"
+            val server = embeddedServer(
+                factory = Netty,
+                port = port,
+                host = host,
+                module = Application::rootModule
+            )
+            server.startSuspend(wait = true)
+            logger.info("Server stopped")
+            return@coroutineScope
+        }
+
         // before we do anything else, check that all the tokens we got
         if (!checkTokens()) {
             logger.error("Failed to check tokens, check logs above to see what went wrong, exiting...")
