@@ -37,7 +37,7 @@ object Config {
         description = "The R2DBC URL of the PostgreSQL database."
     ).map("postgres.url") {
         if (it.startsWith("postgresql:")) {
-            "r2dbc:"
+            "r2dbc:$it"
         } else it
     }
 
